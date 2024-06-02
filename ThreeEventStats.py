@@ -318,3 +318,62 @@ for set_name, set_object in three_set_venn_diagram.sets.items():
 
 
 # the formula is number of partitions = Total Number of items in set! / (partition_1_size!, ..., partition_n_size!)
+
+
+
+class GraphAction:
+    """IDK, a number and a zone in the graph, a group name, to modify the graph"""
+    pass
+
+# Subpartition?
+class SubPartition:
+    """ IDK - a partition is a way to build the whole set by chunks? In this case
+    we care about the composition of the whole set by which components
+    of which subsets were used. I want this class to refer to one group's make
+    up. The chunk in reference to subsets that make up one group's part
+    of the partition. So I think subpartition might be a better name. """
+    pass
+
+def get_subpartitions(group_name: VennSetName, state: VennGraph, handsize: int) -> [SubPartition]:
+    """ Gets all valid subpartitions for a group given a graph and size.
+    Will prioritize picking from the subset only it can take from first and
+    build the rest of the combinations off of that. If it can't include
+    all of the elements in the group only it can take from, or
+    if there aren't enough elements outside of that group to fill
+    its hand, then we return an empty list."""
+    
+    # These are the elements that only this group has access to.
+    
+    remainder = handsize - state.size(True, group_name)
+    if  remainder < 0: return 0
+    if remainder == 0: return 1
+
+    # It would be easy if I could just hash the names of these sets. I need
+    # a good and consistent way to do that. I've been sorting things lexigraphically
+    # and using the string of the concatted group names as the name, but I'm
+    # not sure if that's prone to causing some bugs in the future.
+    # anyways, I want to dynamically get the remaining group names
+    # with the number of items in those groups, and find all possible ways
+    # this group can pick elements from those subgroups without the
+    # remainder going below 0. I think doing this recursively is the best
+    # option. 
+
+
+
+def apply_state_changes(option: GraphAction, state: VennGraph):
+    """ Return a new VennGraph with the changes, or just modify
+    the current graph. Let's try that. I just wouldn't want to edit it
+    and have a bug that makes it so that we can't get it back to
+    the original state."""
+    pass
+
+def generate_partitions(group_names: [VennSetName], state: VennGraph, indx: int):
+    """ Given a group name and a VennGraph, this will generate all
+    high level partitions for each group?"""
+
+    possible_options = [4 + 1/2,
+    4 + 1/6,
+    4 + 1/5 ]
+    for option in possible_options:
+        new_state = apply_state_changes(option)
+        generate_partitions()
