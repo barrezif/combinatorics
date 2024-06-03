@@ -2,6 +2,7 @@ class Foo:
     def __init__(self, name):
         self.name = name
 
+
 """
 Testing whether an object gets stored as a reference or value in a python dictionary
 """
@@ -17,7 +18,8 @@ test_dic[2].name = "Bar2"
 print(test_dic[2].name)
 print(test_dic[1].name)
 
-thing_sizes = [1,2,3,4]
+thing_sizes = [1, 2, 3, 4]
+
 
 def get_iters(sizes, hand_size):
     for size_x in range(sizes[1]):
@@ -27,8 +29,9 @@ def get_iters(sizes, hand_size):
                     continue
                 yield size_x, size_y, size_z
 
-for x,y,z in get_iters(thing_sizes, 4):
-    print(x,y,z)
+
+for x, y, z in get_iters(thing_sizes, 4):
+    print(x, y, z)
 
 # This ^ Outputs this:
 # 0 1 3
@@ -38,11 +41,11 @@ for x,y,z in get_iters(thing_sizes, 4):
 # 1 2 1
 
 
-
-
 """ We can use this as a start to dynamically determine the valid ways
 one user can take from the subsets available to them.
 """
+
+
 def recursive_iter(sizes, hand_size, idx, res):
     if idx >= len(sizes) and hand_size != 0:
         return []
@@ -53,6 +56,7 @@ def recursive_iter(sizes, hand_size, idx, res):
         results = recursive_iter(sizes, hand_size - i, idx+1, res + [i])
         if results:
             yield from results
+
 
 for res in recursive_iter(thing_sizes, 4, 0, []):
     print(res)
@@ -110,3 +114,9 @@ these. Also, want to make sure they're all the same size, so adding 0 to the thr
 
 Having this will let us work with any number of players instead of a fixed 3.
 """
+
+
+print("======== 8 person game")
+eight_person_game = [5, 4, 3, 2, 3, 2, 4, 3, 2, 4, 3, 2, 4, 5]
+for res in recursive_iter(eight_person_game, 7, 0, []):
+    print(res)

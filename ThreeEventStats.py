@@ -146,7 +146,7 @@ class VennGraph:
     def add_to_set(self, elems: [Any], *names: VennSetName):
         """ Adds elements to the set matching the union of the given sets
             
-            Given Sets A, B, C and an element x in set (A,B,C):
+            Given Sets A, B, C and an element x in set (A,):
             * adding to set (B,) results in the element being
             moves to set (A,B)
             * adding to set (B,C) results in the element being
@@ -232,9 +232,15 @@ class VennGraph:
 
     def get_sets(self, *names: VennSetName)->Iterator[VennSet]:
         """ A generator for sets that include the given set
-            ex: sets("A") -> ("A", "AB", "ABC")
+            ex: sets("A") -> ("A", "AB", "AC", "ABC")
         """
         return self._get_set_from_names(names).get_child_sets()
+
+    def get_subset_sizes(self, *names:VennSetName): # Map of name:size
+        """ Returns a dict of the subset name to size of the subset"""
+        child_sets = self._get_set_from_names(names).get_child_sets()
+        return {child: self._get_set_from_names(child).size() for child in child_sets if child != names}
+
 
 
 
@@ -263,62 +269,26 @@ def start_board():
     return domino_map, all_dominoes
 
 
+# Setting up Dominos. They're just arrays of size 2 representing the numbers
+# on each end of the tile.
 domino_map, all_dominoes = start_board()
 
-print(all_dominoes)
-
-
-
-
-
-
-
-
-
+# Setting up the venn diagram representation of players/dominos they
+# can pick from.
 p1 = "A"
 p2 = "B"
 p3 = "C"
 three_set_venn_diagram = VennGraph(p1, p2, p3)
 three_set_venn_diagram.add_to_set(all_dominoes, p1, p2, p3)
-
-
-
-sets_related_to_a = three_set_venn_diagram.get_sets(p1)
-sets_related_to_b = three_set_venn_diagram.get_sets(p2)
-sets_related_to_c = three_set_venn_diagram.get_sets(p3)
-
-
-
+three_set_venn_diagram.put_in_set([all_dominoes[1]], p1)
+three_set_venn_diagram.put_in_set([all_dominoes[5]], p1, p2)
 three_set_venn_diagram.remove_from_graph([all_dominoes[0]])
 
 
-for set_name, set_object in three_set_venn_diagram.sets.items():
-    print(f'{set_object.name}: parents: {
-          len(set_object.parents)} subsets: {len(set_object.subsets)} ' +
-          f'value: {set_object.values}')
-
-
-
-# start to think about the algorithm to use to determine what
-# the outcomes might be
-
-# play a domino... get the state...
-# see which dominoes might possible with the current end points
-# see what values would be available with each of those combinations
-# find all possible applicable dominoes
-# some dominoes might lead to similar states so merge those?
-# figure out the math for how
-# find what the probability would be for the ends to be certain digits.
-
-
-
-
-# I just reduced all of the math I needed to do by looking at this
-# as a partition problem.........
-
-
-# the formula is number of partitions = Total Number of items in set! / (partition_1_size!, ..., partition_n_size!)
-
+# for set_name, set_object in three_set_venn_diagram.sets.items():
+#     print(f'{set_object.name}: parents: {
+#           len(set_object.parents)} subsets: {len(set_object.subsets)} ' +
+#           f'value: {set_object.values}')
 
 
 class GraphAction:
@@ -345,9 +315,14 @@ def get_subpartitions(group_name: VennSetName, state: VennGraph, handsize: int) 
     # These are the elements that only this group has access to.
     
     remainder = handsize - state.size(True, group_name)
-    if  remainder < 0: return 0
-    if remainder == 0: return 1
-
+    subset_sizes = sorted(list(state.get_subset_sizes(group_name).items()))
+    print("This is the subset sizes map", subset_sizes)
+    if  remainder < 0: return []
+    if remainder == 0: return [(group_name, handsize)]
+    all_subpartitions = []
+    for change in generate_changes(subset_sizes, remainder, 0, []):
+        change.append((group_name, handsize-remainder))
+        all_subpartitions.append(change)
     # It would be easy if I could just hash the names of these sets. I need
     # a good and consistent way to do that. I've been sorting things lexigraphically
     # and using the string of the concatted group names as the name, but I'm
@@ -356,9 +331,9 @@ def get_subpartitions(group_name: VennSetName, state: VennGraph, handsize: int) 
     # with the number of items in those groups, and find all possible ways
     # this group can pick elements from those subgroups without the
     # remainder going below 0. I think doing this recursively is the best
-    # option. 
+    # option.
 
-
+    return all_subpartitions
 
 def apply_state_changes(option: GraphAction, state: VennGraph):
     """ Return a new VennGraph with the changes, or just modify
@@ -367,13 +342,22 @@ def apply_state_changes(option: GraphAction, state: VennGraph):
     the original state."""
     pass
 
-def generate_partitions(group_names: [VennSetName], state: VennGraph, indx: int):
-    """ Given a group name and a VennGraph, this will generate all
-    high level partitions for each group?"""
+def generate_changes(sizes, hand_size, idx, res):
+    if idx >= len(sizes) and hand_size != 0:
+        return []
+    if idx >= len(sizes) or hand_size == 0:
+        yield res
+        return res
+    for i in range(sizes[idx][1] + 1):
+        changes = generate_changes(sizes, hand_size - i, idx+1, res + [(sizes[idx][0],i)])
+        if changes:
+            yield from changes
 
-    possible_options = [4 + 1/2,
-    4 + 1/6,
-    4 + 1/5 ]
-    for option in possible_options:
-        new_state = apply_state_changes(option)
-        generate_partitions()
+
+print("------------")
+
+for subpartition in get_subpartitions(p1, three_set_venn_diagram, 4):
+    print(subpartition)
+
+# Since (A, B, C) comes before (A,C), we don't see the full SubPartition,
+# Need to fix that logic so that we see all of the subsets in the result.
