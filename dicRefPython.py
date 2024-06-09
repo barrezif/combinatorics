@@ -120,3 +120,13 @@ print("======== 8 person game")
 eight_person_game = [5, 4, 3, 2, 3, 2, 4, 3, 2, 4, 3, 2, 4, 5]
 for res in recursive_iter(eight_person_game, 7, 0, []):
     print(res)
+
+# An 8 person game would have we more subsets in an 8 person venn diagram than the array above.
+# This approach either won't work with so many people, or I need to figure out a way to
+# 1 . use heuristics to cut out any uneeded computations
+# 2. find a new algorithm
+
+# Running this took like 1 minute and a half...
+# Since I need to know all of these combinations, I'm not sure there is a more fast way.
+
+# Next best thing would just be to optimize whatever I'm doing.  

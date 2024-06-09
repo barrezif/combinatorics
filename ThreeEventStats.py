@@ -8,7 +8,7 @@
 """
 
 
-from collections import defaultdict
+from collections import defaultdict, deque
 from typing import Any, Iterator
 from itertools import combinations
 
@@ -16,7 +16,7 @@ type VennSetName = str | tuple[str, ...]
 type GraphSet = dict[str, 'VennSet']
 
 
-ALLOWED_VENN_GRAPH_SIZES = [2, 3]
+ALLOWED_VENN_GRAPH_SIZES = [2, 3, 8]
 
 class VennSet:
     def __init__(self, name: VennSetName):
@@ -205,6 +205,9 @@ class VennGraph:
                 new_venn = self._get_set_from_names(new_name)
                 new_venn.add_value(registered_elem)
 
+    def get_parent_sets(self):
+        return self.parent_sets
+
     def _get_from_registry(self, elem: Any)->VennElem:
         if elem in self._element_registry:
             return self._element_registry[elem]
@@ -239,6 +242,8 @@ class VennGraph:
     def get_subset_sizes(self, *names:VennSetName): # Map of name:size
         """ Returns a dict of the subset name to size of the subset"""
         child_sets = self._get_set_from_names(names).get_child_sets()
+        for child in child_sets:
+            print(child)
         return {child: self._get_set_from_names(child).size() for child in child_sets if child != names}
 
 
@@ -311,17 +316,15 @@ def get_subpartitions(group_name: VennSetName, state: VennGraph, handsize: int) 
     all of the elements in the group only it can take from, or
     if there aren't enough elements outside of that group to fill
     its hand, then we return an empty list."""
-    
-    # These are the elements that only this group has access to.
-    
+
     remainder = handsize - state.size(True, group_name)
     subset_sizes = sorted(list(state.get_subset_sizes(group_name).items()))
     print("This is the subset sizes map", subset_sizes)
     if  remainder < 0: return []
     if remainder == 0: return [(group_name, handsize)]
     all_subpartitions = []
-    for change in generate_changes(subset_sizes, remainder, 0, []):
-        change.append((group_name, handsize-remainder))
+    for change in generate_changes(subset_sizes, remainder, 0, {ss[0]:0 for ss in subset_sizes}):
+        change[group_name] = handsize-remainder
         all_subpartitions.append(change)
     # It would be easy if I could just hash the names of these sets. I need
     # a good and consistent way to do that. I've been sorting things lexigraphically
@@ -334,6 +337,21 @@ def get_subpartitions(group_name: VennSetName, state: VennGraph, handsize: int) 
     # option.
 
     return all_subpartitions
+
+
+def get_partitions(state: VennGraph, handsizes: deque):
+    size_state = SizeVennGraph(state) # represent the graph with just the number
+                                      # of elems in each set instead of the objects
+    states = deque([size_state])
+    while states:
+        player, hand_size = handsizes.popleft()
+        player_states_size = len(states)
+        for _ in range(player_states_size):
+            curr_state = states.popleft()
+            for player_partition in get_subpartitions(player, curr_state, hand_size):
+                states.append(apply_state_changes(player_partition, curr_state))
+
+
 
 def apply_state_changes(option: GraphAction, state: VennGraph):
     """ Return a new VennGraph with the changes, or just modify
@@ -349,7 +367,10 @@ def generate_changes(sizes, hand_size, idx, res):
         yield res
         return res
     for i in range(sizes[idx][1] + 1):
-        changes = generate_changes(sizes, hand_size - i, idx+1, res + [(sizes[idx][0],i)])
+        old_val = res[sizes[idx][0]]
+        res[sizes[idx][0]] = i
+        changes = generate_changes(sizes, hand_size - i, idx+1, res.copy())
+        res[sizes[idx][0]] = old_val
         if changes:
             yield from changes
 
@@ -361,3 +382,17 @@ for subpartition in get_subpartitions(p1, three_set_venn_diagram, 4):
 
 # Since (A, B, C) comes before (A,C), we don't see the full SubPartition,
 # Need to fix that logic so that we see all of the subsets in the result.
+
+
+# p4 = "D"
+# p5 = "E"
+# p6 = "F"
+# p7 = "G"
+# p8 = "H"
+# eight_set_venn_graph = VennGraph(p1, p2, p3, p4, p5, p6, p7 ,p8)
+# eight_set_venn_graph.add_to_set(all_dominoes, p1, p2, p3, p4, p5, p6, p7 ,p8)
+
+# for set_name, set_object in eight_set_venn_graph.sets.items():
+#     print(f'{set_object.name}: parents: {
+#           len(set_object.parents)} subsets: {len(set_object.subsets)} ' +
+#           f'value: {set_object.values}')
