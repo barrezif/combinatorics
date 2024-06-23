@@ -130,3 +130,20 @@ def generate_changes(sizes, hand_size, idx, res):
 for partition in get_partitions(three_set_venn_diagram, deque([[p1, 6], [p2, 6], [p3,6]])):
     print("========================")
     print(partition)
+
+
+# This prints out
+# ========================
+# [{('A', 'B'): 0, ('A', 'B', 'C'): 5, ('A', 'C'): 0, ('A',): 1}, {('A', 'B'): 0, ('A', 'B', 'C'): 6, ('B', 'C'): 0, ('B',): 0}, {('A', 'B', 'C'): 6, ('A', 'C'): 0, ('B', 'C'): 0, ('C',): 0}]
+# ========================
+# [{('A', 'B'): 0, ('A', 'B', 'C'): 5, ('A', 'C'): 0, ('A',): 1}, {('A', 'B'): 1, ('A', 'B', 'C'): 5, ('B', 'C'): 0, ('B',): 0}, {('A', 'B', 'C'): 6, ('A', 'C'): 0, ('B', 'C'): 0, ('C',): 0}]
+# ========================
+# [{('A', 'B'): 1, ('A', 'B', 'C'): 4, ('A', 'C'): 0, ('A',): 1}, {('A', 'B'): 0, ('A', 'B', 'C'): 6, ('B', 'C'): 0, ('B',): 0}, {('A', 'B', 'C'): 6, ('A', 'C'): 0, ('B', 'C'): 0, ('C',): 0}]
+
+# This shows there are three valid partition shapes for that venndiagram.
+# Since we know where in the graph each domino belongs, we can use these partition shapes to get things like
+# Total number of valid combinations, number of combinations where player 2 has a specific domino
+# likelyhood of any player having any numbered tile
+
+# Using those things we can figure out what the best move should be
+# we could create a game tree eventually.. idk.. months down the line..
