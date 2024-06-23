@@ -130,35 +130,3 @@ def generate_changes(sizes, hand_size, idx, res):
 for partition in get_partitions(three_set_venn_diagram, deque([[p1, 6], [p2, 6], [p3,6]])):
     print("========================")
     print(partition)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-The Data is the collection of subsets that make up the venn diagram, the mapping of
-dominoes to venn diagram subset, and the number of elements each parent set must have
-to make their hand.
-
-
-Parent Sets -> Subsets
-Subsets -> Dominos
-A combination is 
-
-
-
-
-"""
